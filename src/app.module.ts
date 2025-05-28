@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './users/user.module';
+import { ArtistModule } from './artists/artist.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { UserModule } from './users/user.module';
       isGlobal: true,
     }),
     UserModule,
+    ArtistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
