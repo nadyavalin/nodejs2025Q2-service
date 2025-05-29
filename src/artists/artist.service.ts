@@ -3,14 +3,31 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Artist, CreateArtistDto, UpdateArtistDto } from './interfaces';
 import { ArtistRepository } from './artist.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
+import { FavoritesService } from '../favorites/favorites.service';
+import { AlbumRepository } from '../albums/album.repository';
+import { TrackRepository } from '../tracks/track.repository';
 
 @Injectable()
 export class ArtistService {
-  constructor(private readonly repository: ArtistRepository) {}
+  private favoritesService: FavoritesService;
+
+  constructor(
+    private readonly repository: ArtistRepository,
+    private readonly albumRepository: AlbumRepository,
+    private readonly trackRepository: TrackRepository,
+    private readonly moduleRef: ModuleRef,
+  ) {}
+
+  async onModuleInit() {
+    this.favoritesService = await this.moduleRef.get(FavoritesService, {
+      strict: false,
+    });
+  }
 
   async create(dto: CreateArtistDto): Promise<Artist> {
     if (!dto.name || typeof dto.grammy !== 'boolean') {
@@ -61,6 +78,28 @@ export class ArtistService {
     const deleted = this.repository.delete(id);
     if (!deleted) {
       throw new NotFoundException('Artist not found');
+    }
+
+    await this.favoritesService.removeArtist(id);
+    const albums = this.albumRepository.findAll();
+    albums.forEach((album) => {
+      if (album.artistId === id) {
+        this.albumRepository.update(album.id, { artistId: null });
+      }
+    });
+    const tracks = this.trackRepository.findAll();
+    tracks.forEach((track) => {
+      if (track.artistId === id) {
+        this.trackRepository.update(track.id, { artistId: null });
+      }
+    });
+  }
+
+  async getById(id: string): Promise<Artist | null> {
+    try {
+      return await this.findById(id);
+    } catch {
+      return null;
     }
   }
 }

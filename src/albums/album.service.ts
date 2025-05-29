@@ -3,14 +3,29 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Album, CreateAlbumDto, UpdateAlbumDto } from './interfaces';
 import { AlbumRepository } from './album.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
+import { FavoritesService } from '../favorites/favorites.service';
+import { TrackService } from '../tracks/track.service';
 
 @Injectable()
 export class AlbumService {
-  constructor(private readonly repository: AlbumRepository) {}
+  private favoritesService: FavoritesService;
+
+  constructor(
+    private readonly repository: AlbumRepository,
+    private readonly trackService: TrackService,
+    private readonly moduleRef: ModuleRef,
+  ) {}
+
+  async onModuleInit() {
+    this.favoritesService = await this.moduleRef.get(FavoritesService, {
+      strict: false,
+    });
+  }
 
   async create(dto: CreateAlbumDto): Promise<Album> {
     if (!dto.name || typeof dto.year !== 'number') {
@@ -67,6 +82,26 @@ export class AlbumService {
     const deleted = this.repository.delete(id);
     if (!deleted) {
       throw new NotFoundException('Album not found');
+    }
+
+    await this.favoritesService.removeAlbumOnDelete(id);
+    await this.trackService.clearAlbumReferences(id);
+  }
+
+  async clearArtistReferences(artistId: string): Promise<void> {
+    const albums = this.repository.findAll();
+    albums.forEach((album) => {
+      if (album.artistId === artistId) {
+        this.repository.update(album.id, { artistId: null });
+      }
+    });
+  }
+
+  async getById(id: string): Promise<Album | null> {
+    try {
+      return await this.findById(id);
+    } catch {
+      return null;
     }
   }
 }

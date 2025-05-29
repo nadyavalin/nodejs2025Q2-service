@@ -3,14 +3,27 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Track, CreateTrackDto, UpdateTrackDto } from './interfaces';
 import { TrackRepository } from './track.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
 export class TrackService {
-  constructor(private readonly repository: TrackRepository) {}
+  private favoritesService: FavoritesService;
+
+  constructor(
+    private readonly repository: TrackRepository,
+    private readonly moduleRef: ModuleRef,
+  ) {}
+
+  async onModuleInit() {
+    this.favoritesService = await this.moduleRef.get(FavoritesService, {
+      strict: false,
+    });
+  }
 
   async create(dto: CreateTrackDto): Promise<Track> {
     if (!dto.name || typeof dto.duration !== 'number') {
@@ -73,6 +86,34 @@ export class TrackService {
     const deleted = this.repository.delete(id);
     if (!deleted) {
       throw new NotFoundException('Track not found');
+    }
+
+    await this.favoritesService.removeTrackOnDelete(id);
+  }
+
+  async clearArtistReferences(artistId: string): Promise<void> {
+    const tracks = this.repository.findAll();
+    tracks.forEach((track) => {
+      if (track.artistId === artistId) {
+        this.repository.update(track.id, { artistId: null });
+      }
+    });
+  }
+
+  async clearAlbumReferences(albumId: string): Promise<void> {
+    const tracks = this.repository.findAll();
+    tracks.forEach((track) => {
+      if (track.albumId === albumId) {
+        this.repository.update(track.id, { albumId: null });
+      }
+    });
+  }
+
+  async getById(id: string): Promise<Track | null> {
+    try {
+      return await this.findById(id);
+    } catch {
+      return null;
     }
   }
 }

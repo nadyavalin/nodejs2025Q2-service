@@ -26,7 +26,7 @@ export class UserService {
       this.configService.get<string>('CRYPT_SALT') || '10',
       10,
     );
-    const salt = await bcrypt.genSalt(saltRounds); // Используем genSalt для надёжности
+    const salt = await bcrypt.genSalt(saltRounds);
     const hashedPassword = await bcrypt.hash(dto.password, salt);
     const user = this.repository.create({ ...dto, password: hashedPassword });
     return plainToInstance(User, user);
