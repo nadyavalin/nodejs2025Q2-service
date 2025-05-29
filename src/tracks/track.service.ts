@@ -4,11 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Track, CreateTrackDto, UpdateTrackDto } from './interfaces';
+import { Track } from './interfaces';
 import { TrackRepository } from './track.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
 import { FavoritesService } from '../favorites/favorites.service';
+import { CreateTrackDto } from './dto/create-track.dto';
+import { UpdateTrackDto } from './dto/update-track.dto';
 
 @Injectable()
 export class TrackService {

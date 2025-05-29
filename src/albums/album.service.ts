@@ -4,12 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Album, CreateAlbumDto, UpdateAlbumDto } from './interfaces';
+import { Album } from './interfaces';
 import { AlbumRepository } from './album.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
 import { FavoritesService } from '../favorites/favorites.service';
 import { TrackService } from '../tracks/track.service';
+import { CreateAlbumDto } from './dto/create-album.dto';
+import { UpdateAlbumDto } from './dto/update-album.dto';
 
 @Injectable()
 export class AlbumService {

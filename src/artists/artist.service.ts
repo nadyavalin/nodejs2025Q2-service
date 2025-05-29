@@ -4,13 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Artist, CreateArtistDto, UpdateArtistDto } from './interfaces';
+import { Artist } from './interfaces';
 import { ArtistRepository } from './artist.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
 import { FavoritesService } from '../favorites/favorites.service';
 import { AlbumRepository } from '../albums/album.repository';
 import { TrackRepository } from '../tracks/track.repository';
+import { CreateArtistDto } from './dto/creat-artist.dto';
+import { UpdateArtistDto } from './dto/update-artist.dto';
 
 @Injectable()
 export class ArtistService {
