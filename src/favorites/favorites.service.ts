@@ -74,10 +74,7 @@ export class FavoritesService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const removed = this.favoritesRepository.removeArtist(id);
-    if (!removed) {
-      throw new NotFoundException('Artist not in favorites');
-    }
+    this.favoritesRepository.removeArtist(id);
   }
 
   async addAlbum(id: string): Promise<void> {
