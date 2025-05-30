@@ -7,11 +7,10 @@ import {
   Param,
   Body,
   HttpCode,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdatePasswordDto } from './interfaces';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('user')
 export class UserController {
@@ -28,13 +27,11 @@ export class UserController {
   }
 
   @Post()
-  @UsePipes(new ValidationPipe())
   async create(@Body() dto: CreateUserDto) {
     return this.userService.create(dto);
   }
 
   @Put(':id')
-  @UsePipes(new ValidationPipe())
   async updatePassword(
     @Param('id') id: string,
     @Body() dto: UpdatePasswordDto,

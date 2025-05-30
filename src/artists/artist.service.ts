@@ -11,7 +11,7 @@ import { plainToInstance } from 'class-transformer';
 import { FavoritesService } from '../favorites/favorites.service';
 import { AlbumRepository } from '../albums/album.repository';
 import { TrackRepository } from '../tracks/track.repository';
-import { CreateArtistDto } from './dto/creat-artist.dto';
+import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 
 @Injectable()
@@ -63,8 +63,14 @@ export class ArtistService {
     if (!artist) {
       throw new NotFoundException('Artist not found');
     }
-    if (!dto.name || typeof dto.grammy !== 'boolean') {
-      throw new BadRequestException('Name and grammy are required');
+
+    if (typeof dto.name !== 'string' || typeof dto.grammy !== 'boolean') {
+      throw new BadRequestException(
+        'Name must be a string and grammy must be a boolean',
+      );
+    }
+    if (!dto.name) {
+      throw new BadRequestException('Name is required');
     }
     const updatedArtist = this.repository.update(id, dto);
     if (!updatedArtist) {

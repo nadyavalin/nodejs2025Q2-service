@@ -7,9 +7,11 @@ import {
   Param,
   Body,
   HttpCode,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ArtistService } from './artist.service';
-import { CreateArtistDto } from './dto/creat-artist.dto';
+import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 
 @Controller('artist')
@@ -32,6 +34,15 @@ export class ArtistController {
   }
 
   @Put(':id')
+  @UsePipes(
+    new ValidationPipe({
+      transform: false,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      stopAtFirstError: true,
+      disableErrorMessages: false,
+    }),
+  )
   async update(
     @Param('id') id: string,
     @Body() updateArtistDto: UpdateArtistDto,
