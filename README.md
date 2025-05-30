@@ -1,72 +1,354 @@
-# Home Library Service
+# Home Library REST API
 
-## Prerequisites
+This is a RESTful API for managing a music library, built with **NestJS**. It supports CRUD operations for **Artists**, **Albums**, **Tracks**, **Favorites**, and **Users**, with data stored in an in-memory repository. The API is documented using an OpenAPI 3.0 specification (`doc/api.yaml`), which can be imported into Postman for testing.
 
-- Git - [Download & Install Git](https://git-scm.com/downloads).
-- Node.js - [Download & Install Node.js](https://nodejs.org/en/download/) and the npm package manager.
+## Table of Contents
 
-## Downloading
+- [Installation](#installation)
+- [Running the Application](#running-the-application)
+  - [Development Mode](#development-mode)
+  - [Production Mode](#production-mode)
+- [Running Tests](#running-tests)
+- [API Documentation](#api-documentation)
+- [Testing with Postman](#testing-with-postman)
+  - [Importing OpenAPI Specification](#importing-openapi-specification)
+  - [Postman Testing Examples](#postman-testing-examples)
+- [Linting and Formatting](#linting-and-formatting)
+- [Debugging in VSCode](#debugging-in-vscode)
 
+## Installation
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/nadyavalin/nodejs2025Q2-service
+   ```
+   ```bash
+   cd nodejs2025Q2-service
+   ```
+
+2. **Install dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Create a `.env` file**:
+  Crate a `env` file in the root directory and specify the port `4000`.
+  You can create it from .env.example.
+
+## Running the Application
+
+### Development Mode
+
+To run the application in development mode with hot-reloading:
+
+```bash
+npm run start:dev
 ```
-git clone {repository URL}
-```
 
-## Installing NPM modules
+- The server will start at `http://localhost:4000`.
+- Code changes will automatically restart the server.
 
-```
-npm install
-```
+### Production Mode
 
-## Running application
+To build and run the application in production mode:
 
-```
-npm start
-```
+1. Build the project:
+   ```bash
+   npm run build
+   ```
+2. Start the server:
+   ```bash
+   npm run start:prod
+   ```
 
-After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
-For more information about OpenAPI/Swagger please visit https://swagger.io/.
+- The server will start at `http://localhost:4000`.
 
-## Testing
+## Running Tests
 
-After application running open new terminal and enter:
+Run end-to-end (e2e) tests using Jest.
+__Run all test suites without authorization:__
 
-To run all tests without authorization
-
-```
+```bash
 npm run test
 ```
-
-To run only one of all test suites
-
-```
-npm run test -- <path to suite>
+or
+```bash
+npm run test -- test/*.spec.ts
 ```
 
-To run all test with authorization
+Cover endpoints for `Artists`, `Albums`, `Tracks`, `Favorites`, `Users`.
 
-```
-npm run test:auth
-```
+Run a specific test suite:
 
-To run only specific test suite with authorization
-
-```
-npm run test:auth -- <path to suite>
+```bash
+npm run test -- test/users.e2e.spec.ts
 ```
 
-### Auto-fix and format
-
+```bash
+npm run test -- test/artists.e2e.spec.ts
 ```
+
+```bash
+npm run test -- test/albums.e2e.spec.ts
+```
+
+```bash
+npm run test -- test/tracks.e2e.spec.ts
+```
+
+```bash
+npm run test -- test/favorites.e2e.spec.ts
+```
+
+__Run all tests with authorization:__
+(not implemented yet)
+
+Before running tests, make sure the server is running.
+
+## API Documentation
+
+The API is documented in the OpenAPI 3.0 specification file located at `doc/api.yaml`. This file describes all endpoints, request/response schemas, and authentication requirements.
+
+### Importing OpenAPI Specification
+
+To test the API in Postman:
+
+1. Open Postman.
+2. Click **Import** > **File** > select `doc/api.yaml`.
+3. Postman will generate a collection with all endpoints.
+4. Set the base URL to `http://localhost:4000` in the collection variables (if necessary).
+
+## Testing with Postman
+
+Below are examples of testing each endpoint using Postman. Ensure the server is running (`npm run start:dev`). aLL REQUESTS US `Accept: application/json` headers. POST and PUT requests use `Content-Type: application/json` headers.
+
+### Authentication
+
+First, create a user.
+
+- **Create User**:
+
+  ```
+  POST http://localhost:4000/user
+  Content-Type: application/json
+  Body:
+  {
+    "login": "testUser",
+    "password": "testPassword"
+  }
+  ```
+
+  Response (201 Created):
+
+  ```json
+  {
+    "id": "<uuid>",
+    "login": "testUser",
+    "version": 1,
+    "createdAt": <timestamp>,
+    "updatedAt": <timestamp>
+  }
+  ```
+
+### Artists Endpoints
+
+- **Get All Artists**:
+
+  ```
+  GET http://localhost:4000/artist
+  ```
+
+  Response (200 OK):
+
+  ```json
+  [
+    {
+      "id": "<uuid>",
+      "name": "TEST_artist",
+      "grammy": true
+    }
+  ]
+  ```
+
+- **Get Artist by ID**:
+
+  ```
+  GET http://localhost:4000/artist/<artist-id>
+  ```
+
+  Response (200 OK):
+
+  ```json
+  {
+    "id": "<uuid>",
+    "name": "TEST_artist",
+    "grammy": true
+  }
+  ```
+
+- **Create Artist**:
+
+  ```
+  POST http://localhost:4000/artist
+  Content-Type: application/json
+  Body:
+  {
+    "name": "TEST_artist",
+    "grammy": true
+  }
+  ```
+
+  Response (201 Created):
+
+  ```json
+  {
+    "id": "<uuid>",
+    "name": "TEST_artist",
+    "grammy": true
+  }
+  ```
+
+- **Update Artist**:
+
+  ```
+  PUT http://localhost:4000/artist/<artist-id>
+  Content-Type: application/json
+  Body:
+  {
+    "name": "Updated_artist",
+    "grammy": false
+  }
+  ```
+
+  Response (200 OK):
+
+  ```json
+  {
+    "id": "<uuid>",
+    "name": "Updated_artist",
+    "grammy": false
+  }
+  ```
+
+- **Delete Artist**:
+  ```
+  DELETE http://localhost:4000/artist/<artist-id>
+  ```
+  Response (204 No Content).
+
+### Albums Endpoints
+
+- **Create Album**:
+
+  ```
+  POST http://localhost:4000/album
+  Content-Type: application/json
+  Body:
+  {
+    "name": "TEST_album",
+    "year": 2023,
+    "artistId": "<artist-id>"
+  }
+  ```
+
+  Response (201 Created):
+
+  ```json
+  {
+    "id": "<uuid>",
+    "name": "TEST_album",
+    "year": 2023,
+    "artistId": "<artist-id>"
+  }
+  ```
+
+- **Get All Albums**, **Get Album by ID**, **Update Album**, **Delete Album**: Use `/album` and `/album/<album-id>` (similar to Artists).
+
+### Tracks Endpoints
+
+- **Create Track**:
+
+  ```
+  POST http://localhost:4000/track
+  Content-Type: application/json
+  Body:
+  {
+    "name": "TEST_track",
+    "albumId": null,
+    "artistId": "<artist-id>",
+    "duration": 200
+  }
+  ```
+
+  Response (201 Created):
+
+  ```json
+  {
+    "id": "<uuid>",
+    "name": "TEST_track",
+    "albumId": null,
+    "artistId": "<artist-id>",
+    "duration": 200
+  }
+  ```
+
+- **Get All Tracks**, **Get Track by ID**, **Update Track**, **Delete Track**: Use `/track` and `/track/<track-id>` (similar to Artists).
+
+### Favorites Endpoints
+
+- **Add Artist to Favorites**:
+
+  ```
+  POST http://localhost:4000/favs/artist/<artist-id>
+  Content-Type: application/json
+  ```
+
+  Response (201 Created).
+
+- **Get Favorites**:
+
+  ```
+  GET http://localhost:4000/favs
+  ```
+
+  Response (200 OK):
+
+  ```json
+  {
+    "artists": [{ "id": "<uuid>", "name": "TEST_artist", "grammy": true }],
+    "albums": [],
+    "tracks": []
+  }
+  ```
+
+- **Remove Artist from Favorites**:
+
+  ```
+  DELETE http://localhost:4000/favs/artist/<artist-id>
+  ```
+
+  Response (204 No Content).
+
+- **Add/Remove Albums/Tracks to Favorites**: Use `/favs/album/<album-id>`, `/favs/track/<track-id>` (similar to Artists).
+
+## Linting and Formatting
+
+To fix linting issues:
+
+```bash
 npm run lint
 ```
 
-```
+To format code with Prettier:
+
+```bash
 npm run format
 ```
 
-### Debugging in VSCode
+## Debugging in VSCode
 
-Press <kbd>F5</kbd> to debug.
-
-For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+1. Open the project in VSCode.
+2. Press `F5` to start debugging.
+3. For more details, visit: [VSCode Debugging](https://code.visualstudio.com/docs/editor/debugging).
