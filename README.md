@@ -1,6 +1,6 @@
 # Home Library REST API
 
-This is a RESTful API for managing a music library, built with **NestJS**. It supports CRUD operations for **Artists**, **Albums**, **Tracks**, **Favorites**, and **Users**, with data stored in an in-memory repository. The API is documented using an OpenAPI 3.0 specification (`doc/api.yaml`), which can be imported into Postman for testing.
+This is a RESTful API for managing a music library, built with **NestJS**. It supports CRUD operations for **Artists**, **Albums**, **Tracks**, **Favorites**, and **Users**, with data stored in an in-memory repository. The API is documented using an OpenAPI 3.0 specification (`doc/api.yaml`), which can be imported into Postman for testing or viewed via Swagger UI.
 
 ## Table of Contents
 
@@ -10,8 +10,9 @@ This is a RESTful API for managing a music library, built with **NestJS**. It su
   - [Production Mode](#production-mode)
 - [Running Tests](#running-tests)
 - [API Documentation](#api-documentation)
-- [Testing with Postman](#testing-with-postman)
+  - [Swagger UI](#swagger-ui)
   - [Importing OpenAPI Specification](#importing-openapi-specification)
+- [Testing with Postman](#testing-with-postman)
   - [Postman Testing Examples](#postman-testing-examples)
 - [Linting and Formatting](#linting-and-formatting)
 - [Debugging in VSCode](#debugging-in-vscode)
@@ -23,6 +24,7 @@ This is a RESTful API for managing a music library, built with **NestJS**. It su
    ```bash
    git clone https://github.com/nadyavalin/nodejs2025Q2-service
    ```
+
    ```bash
    cd nodejs2025Q2-service
    ```
@@ -34,8 +36,8 @@ This is a RESTful API for managing a music library, built with **NestJS**. It su
    ```
 
 3. **Create a `.env` file**:
-  Crate a `env` file in the root directory and specify the port `4000`.
-  You can create it from .env.example.
+   Create a `.env` file in the root directory and specify the port `4000`.
+   You can create it from `.env.example`.
 
 ## Running the Application
 
@@ -49,6 +51,7 @@ npm run start:dev
 
 - The server will start at `http://localhost:4000`.
 - Code changes will automatically restart the server.
+- Swagger UI is available at `http://localhost:4000/doc`.
 
 ### Production Mode
 
@@ -64,16 +67,19 @@ To build and run the application in production mode:
    ```
 
 - The server will start at `http://localhost:4000`.
+- Swagger UI is available at `http://localhost:4000/doc`.
 
 ## Running Tests
 
 Run end-to-end (e2e) tests using Jest.
-__Run all test suites without authorization:__
+**Run all test suites without authorization:**
 
 ```bash
 npm run test
 ```
+
 or
+
 ```bash
 npm run test -- test/*.spec.ts
 ```
@@ -102,14 +108,43 @@ npm run test -- test/tracks.e2e.spec.ts
 npm run test -- test/favorites.e2e.spec.ts
 ```
 
-__Run all tests with authorization:__
+**Run all tests with authorization:**
 (not implemented yet)
 
 Before running tests, make sure the server is running.
 
 ## API Documentation
 
-The API is documented in the OpenAPI 3.0 specification file located at `doc/api.yaml`. This file describes all endpoints, request/response schemas, and authentication requirements.
+The API is documented in the OpenAPI 3.0 specification file located at `doc/api.yaml`. This file describes all endpoints, request/response schemas, and can be viewed interactively via Swagger UI or imported into Postman for testing.
+
+### Swagger UI
+
+Swagger UI provides an interactive interface to explore and test the API endpoints defined in `doc/api.yaml`.
+
+**How to launch Swagger UI**:
+
+1. Start the application in development or production mode:
+   ```bash
+   npm run start:dev
+   ```
+   or
+   ```bash
+   npm run build
+   npm run start:prod
+   ```
+2. Open a browser and navigate to `http://localhost:4000/doc`.
+   - You will see the Swagger UI interface displaying all API endpoints grouped by tags (e.g., `User`, `Artist`, `Album`, `Track`, `Favorites`).
+
+**How to use Swagger UI**:
+
+- Browse endpoints to view their descriptions, parameters, request bodies, and possible responses.
+- Use the **Try it out** button to test endpoints directly in the browser:
+  1. Click on an endpoint (e.g., `POST /artist`).
+  2. Click **Try it out**.
+  3. Enter a request body (e.g., `{ "name": "TEST_artist", "grammy": true }`).
+  4. Click **Execute** to send the request and view the response.
+- The interface supports testing CRUD operations for all entities (`Artists`, `Albums`, `Tracks`, `Favorites`, `Users`).
+- For more information about Swagger, visit [https://swagger.io](https://swagger.io).
 
 ### Importing OpenAPI Specification
 
@@ -122,7 +157,7 @@ To test the API in Postman:
 
 ## Testing with Postman
 
-Below are examples of testing each endpoint using Postman. Ensure the server is running (`npm run start:dev`). aLL REQUESTS US `Accept: application/json` headers. POST and PUT requests use `Content-Type: application/json` headers.
+Below are examples of testing each endpoint using Postman. Ensure the server is running (`npm run start:dev`). All requests use `Accept: application/json` headers. POST and PUT requests use `Content-Type: application/json` headers.
 
 ### Authentication
 
