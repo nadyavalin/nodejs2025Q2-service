@@ -1,0 +1,9 @@
+FROM postgres:16
+
+ENV POSTGRES_USER=library_user
+ENV POSTGRES_PASSWORD=library_password
+ENV POSTGRES_DB=home_library
+
+EXPOSE 5433
+
+VOLUME /var/lib/postgresql/data
