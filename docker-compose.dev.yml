@@ -9,7 +9,7 @@ services:
     environment:
       - NODE_ENV=development
       - DATABASE_HOST=db
-      - DATABASE_PORT=5433
+      - DATABASE_PORT=5432
       - DATABASE_USER=library_user
       - DATABASE_PASSWORD=library_password
       - DATABASE_NAME=home_library
@@ -33,7 +33,7 @@ services:
       dockerfile: Dockerfile.db
     image: nadyavalin/library-db:latest
     ports:
-      - "5433:5433"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./logs:/var/log/postgresql
