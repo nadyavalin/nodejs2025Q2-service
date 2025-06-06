@@ -1,25 +1,25 @@
+# Этап 1: Сборка
 FROM node:22.16.0 AS builder
 
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3 \
-    libpq-dev \
-    gcc \
-    g++ \
-    make \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN npm ci && npm cache clean --force
+
 COPY . .
 RUN npm run build
-FROM node:22.16.0
+
+# Этап 2: Продакшен
+FROM node:22.16.0-slim
+
 WORKDIR /app
+
 COPY package*.json ./
-RUN npm install --production
+RUN npm ci --production && npm cache clean --force
+
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/doc ./doc
+
 EXPOSE 4000
 
 CMD ["npm", "run", "start:prod"]

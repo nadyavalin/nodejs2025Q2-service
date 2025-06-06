@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Track } from './interfaces';
+import { Track } from './track.entity'; // Заменили interfaces на entity
 import { TrackRepository } from './track.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
@@ -37,12 +37,12 @@ export class TrackService {
     if (dto.albumId && !isUUID(dto.albumId)) {
       throw new BadRequestException('Invalid albumId UUID');
     }
-    const track = this.repository.create(dto);
+    const track = await this.repository.create(dto); // Добавили await
     return plainToInstance(Track, track);
   }
 
   async findAll(): Promise<Track[]> {
-    const tracks = this.repository.findAll();
+    const tracks = await this.repository.findAll(); // Добавили await
     return tracks.map((track) => plainToInstance(Track, track));
   }
 
@@ -50,7 +50,7 @@ export class TrackService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const track = this.repository.findById(id);
+    const track = await this.repository.findById(id); // Добавили await
     if (!track) {
       throw new NotFoundException('Track not found');
     }
@@ -61,7 +61,7 @@ export class TrackService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const track = this.repository.findById(id);
+    const track = await this.repository.findById(id); // Добавили await
     if (!track) {
       throw new NotFoundException('Track not found');
     }
@@ -74,7 +74,7 @@ export class TrackService {
     if (dto.albumId && !isUUID(dto.albumId)) {
       throw new BadRequestException('Invalid albumId UUID');
     }
-    const updatedTrack = this.repository.update(id, dto);
+    const updatedTrack = await this.repository.update(id, dto); // Добавили await
     if (!updatedTrack) {
       throw new NotFoundException('Track not found');
     }
@@ -85,7 +85,7 @@ export class TrackService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const deleted = this.repository.delete(id);
+    const deleted = await this.repository.delete(id); // Добавили await
     if (!deleted) {
       throw new NotFoundException('Track not found');
     }
@@ -94,19 +94,19 @@ export class TrackService {
   }
 
   async clearArtistReferences(artistId: string): Promise<void> {
-    const tracks = this.repository.findAll();
-    tracks.forEach((track) => {
+    const tracks = await this.repository.findAll(); // Добавили await
+    tracks.forEach(async (track) => {
       if (track.artistId === artistId) {
-        this.repository.update(track.id, { artistId: null });
+        await this.repository.update(track.id, { artistId: null }); // Добавили await
       }
     });
   }
 
   async clearAlbumReferences(albumId: string): Promise<void> {
-    const tracks = this.repository.findAll();
-    tracks.forEach((track) => {
+    const tracks = await this.repository.findAll(); // Добавили await
+    tracks.forEach(async (track) => {
       if (track.albumId === albumId) {
-        this.repository.update(track.id, { albumId: null });
+        await this.repository.update(track.id, { albumId: null }); // Добавили await
       }
     });
   }
