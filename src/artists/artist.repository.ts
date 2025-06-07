@@ -1,43 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { Artist } from './interfaces';
-import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Artist } from './artist.entity';
+import { CreateArtistDto } from './dto/create-artist.dto';
 
 @Injectable()
 export class ArtistRepository {
-  private artists: Artist[] = [];
+  constructor(
+    @InjectRepository(Artist)
+    private readonly artistRepo: Repository<Artist>,
+  ) {}
 
-  create(artist: Omit<Artist, 'id'>): Artist {
-    const newArtist: Artist = {
-      id: uuidv4(),
-      ...artist,
-    };
-    this.artists.push(newArtist);
-    return newArtist;
+  async create(artist: CreateArtistDto): Promise<Artist> {
+    const newArtist = this.artistRepo.create(artist);
+    return this.artistRepo.save(newArtist);
   }
 
-  findAll(): Artist[] {
-    return this.artists;
+  async findAll(): Promise<Artist[]> {
+    return this.artistRepo.find();
   }
 
-  findById(id: string): Artist | undefined {
-    return this.artists.find((artist) => artist.id === id);
+  async findById(id: string): Promise<Artist | undefined> {
+    return this.artistRepo.findOne({ where: { id } });
   }
 
-  update(id: string, data: Partial<Artist>): Artist | undefined {
-    const artist = this.findById(id);
+  async update(id: string, data: Partial<Artist>): Promise<Artist | undefined> {
+    const artist = await this.findById(id);
     if (artist) {
       Object.assign(artist, data);
-      return artist;
+      return this.artistRepo.save(artist);
     }
     return undefined;
   }
 
-  delete(id: string): boolean {
-    const index = this.artists.findIndex((artist) => artist.id === id);
-    if (index !== -1) {
-      this.artists.splice(index, 1);
-      return true;
-    }
-    return false;
+  async delete(id: string): Promise<boolean> {
+    const result = await this.artistRepo.delete(id);
+    return result.affected > 0;
   }
 }

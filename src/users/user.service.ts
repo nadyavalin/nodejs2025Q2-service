@@ -28,12 +28,15 @@ export class UserService {
     );
     const salt = await bcrypt.genSalt(saltRounds);
     const hashedPassword = await bcrypt.hash(dto.password, salt);
-    const user = this.repository.create({ ...dto, password: hashedPassword });
+    const user = await this.repository.create({
+      ...dto,
+      password: hashedPassword,
+    });
     return plainToInstance(User, user);
   }
 
   async findAll(): Promise<Omit<User, 'password'>[]> {
-    const users = this.repository.findAll();
+    const users = await this.repository.findAll();
     return users.map((user) => plainToInstance(User, user));
   }
 
@@ -41,7 +44,7 @@ export class UserService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const user = this.repository.findById(id);
+    const user = await this.repository.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -55,7 +58,7 @@ export class UserService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const user = this.repository.findById(id);
+    const user = await this.repository.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -72,7 +75,7 @@ export class UserService {
     );
     const salt = await bcrypt.genSalt(saltRounds);
     const hashedNewPassword = await bcrypt.hash(dto.newPassword, salt);
-    const updatedUser = this.repository.update(id, {
+    const updatedUser = await this.repository.update(id, {
       password: hashedNewPassword,
     });
     if (!updatedUser) {
@@ -85,7 +88,7 @@ export class UserService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const deleted = this.repository.delete(id);
+    const deleted = await this.repository.delete(id);
     if (!deleted) {
       throw new NotFoundException('User not found');
     }

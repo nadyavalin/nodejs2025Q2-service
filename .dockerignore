@@ -1,0 +1,16 @@
+node_modules
+dist
+logs
+*.log
+coverage
+.env
+docker-compose.yml
+docker-compose.dev.yml
+Dockerfile
+Dockerfile.db
+Dockerfile.dev
+README.md
+.git
+.gitignore
+.eslintrc.js
+.prettierrc

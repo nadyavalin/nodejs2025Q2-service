@@ -30,20 +30,20 @@ export class FavoritesService {
   }
 
   async getFavorites(): Promise<FavoritesResponse> {
-    const favorites = this.favoritesRepository.getFavorites();
+    const favorites = await this.favoritesRepository.getFavorites();
     const artists = await Promise.all(
-      favorites.artists.map((id) =>
-        this.artistService.getById(id).catch(() => null),
+      favorites.artists.map((artist) =>
+        this.artistService.getById(artist.id).catch(() => null),
       ),
     ).then((results) => results.filter((artist) => artist !== null));
     const albums = await Promise.all(
-      favorites.albums.map((id) =>
-        this.albumService.getById(id).catch(() => null),
+      favorites.albums.map((album) =>
+        this.albumService.getById(album.id).catch(() => null),
       ),
     ).then((results) => results.filter((album) => album !== null));
     const tracks = await Promise.all(
-      favorites.tracks.map((id) =>
-        this.trackService.getById(id).catch(() => null),
+      favorites.tracks.map((track) =>
+        this.trackService.getById(track.id).catch(() => null),
       ),
     ).then((results) => results.filter((track) => track !== null));
 
@@ -64,7 +64,7 @@ export class FavoritesService {
     if (!artist) {
       throw new UnprocessableEntityException('Artist does not exist');
     }
-    const added = this.favoritesRepository.addArtist(id);
+    const added = await this.favoritesRepository.addArtist(id);
     if (!added) {
       throw new BadRequestException('Artist already in favorites');
     }
@@ -74,7 +74,10 @@ export class FavoritesService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    this.favoritesRepository.removeArtist(id);
+    const removed = await this.favoritesRepository.removeArtist(id);
+    if (!removed) {
+      throw new NotFoundException('Artist not in favorites');
+    }
   }
 
   async addAlbum(id: string): Promise<void> {
@@ -87,7 +90,7 @@ export class FavoritesService {
     if (!album) {
       throw new UnprocessableEntityException('Album does not exist');
     }
-    const added = this.favoritesRepository.addAlbum(id);
+    const added = await this.favoritesRepository.addAlbum(id);
     if (!added) {
       throw new BadRequestException('Album already in favorites');
     }
@@ -97,7 +100,7 @@ export class FavoritesService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const removed = this.favoritesRepository.removeAlbum(id);
+    const removed = await this.favoritesRepository.removeAlbum(id);
     if (!removed) {
       throw new NotFoundException('Album not in favorites');
     }
@@ -113,7 +116,7 @@ export class FavoritesService {
     if (!track) {
       throw new UnprocessableEntityException('Track does not exist');
     }
-    const added = this.favoritesRepository.addTrack(id);
+    const added = await this.favoritesRepository.addTrack(id);
     if (!added) {
       throw new BadRequestException('Track already in favorites');
     }
@@ -123,17 +126,17 @@ export class FavoritesService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const removed = this.favoritesRepository.removeTrack(id);
+    const removed = await this.favoritesRepository.removeTrack(id);
     if (!removed) {
       throw new NotFoundException('Track not in favorites');
     }
   }
 
   async removeTrackOnDelete(id: string): Promise<void> {
-    this.favoritesRepository.removeTrack(id);
+    await this.favoritesRepository.removeTrack(id);
   }
 
   async removeAlbumOnDelete(id: string): Promise<void> {
-    this.favoritesRepository.removeAlbum(id);
+    await this.favoritesRepository.removeAlbum(id);
   }
 }

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Album } from './interfaces';
+import { Album } from './album.entity';
 import { AlbumRepository } from './album.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
@@ -36,12 +36,12 @@ export class AlbumService {
     if (dto.artistId && !isUUID(dto.artistId)) {
       throw new BadRequestException('Invalid artistId UUID');
     }
-    const album = this.repository.create(dto);
+    const album = await this.repository.create(dto);
     return plainToInstance(Album, album);
   }
 
   async findAll(): Promise<Album[]> {
-    const albums = this.repository.findAll();
+    const albums = await this.repository.findAll();
     return albums.map((album) => plainToInstance(Album, album));
   }
 
@@ -49,7 +49,7 @@ export class AlbumService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const album = this.repository.findById(id);
+    const album = await this.repository.findById(id);
     if (!album) {
       throw new NotFoundException('Album not found');
     }
@@ -60,7 +60,7 @@ export class AlbumService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const album = this.repository.findById(id);
+    const album = await this.repository.findById(id);
     if (!album) {
       throw new NotFoundException('Album not found');
     }
@@ -70,7 +70,7 @@ export class AlbumService {
     if (dto.artistId && !isUUID(dto.artistId)) {
       throw new BadRequestException('Invalid artistId UUID');
     }
-    const updatedAlbum = this.repository.update(id, dto);
+    const updatedAlbum = await this.repository.update(id, dto);
     if (!updatedAlbum) {
       throw new NotFoundException('Album not found');
     }
@@ -81,7 +81,7 @@ export class AlbumService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const deleted = this.repository.delete(id);
+    const deleted = await this.repository.delete(id);
     if (!deleted) {
       throw new NotFoundException('Album not found');
     }
@@ -91,10 +91,10 @@ export class AlbumService {
   }
 
   async clearArtistReferences(artistId: string): Promise<void> {
-    const albums = this.repository.findAll();
-    albums.forEach((album) => {
+    const albums = await this.repository.findAll();
+    albums.forEach(async (album) => {
       if (album.artistId === artistId) {
-        this.repository.update(album.id, { artistId: null });
+        await this.repository.update(album.id, { artistId: null });
       }
     });
   }

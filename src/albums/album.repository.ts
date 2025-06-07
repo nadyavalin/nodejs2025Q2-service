@@ -1,43 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { Album } from './interfaces';
-import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Album } from './album.entity';
+import { CreateAlbumDto } from './dto/create-album.dto';
 
 @Injectable()
 export class AlbumRepository {
-  private albums: Album[] = [];
+  constructor(
+    @InjectRepository(Album)
+    private readonly repository: Repository<Album>,
+  ) {}
 
-  create(album: Omit<Album, 'id'>): Album {
-    const newAlbum: Album = {
-      id: uuidv4(),
-      ...album,
-    };
-    this.albums.push(newAlbum);
-    return newAlbum;
+  async create(album: CreateAlbumDto): Promise<Album> {
+    const newAlbum = this.repository.create(album);
+    return this.repository.save(newAlbum);
   }
 
-  findAll(): Album[] {
-    return this.albums;
+  async findAll(): Promise<Album[]> {
+    return this.repository.find();
   }
 
-  findById(id: string): Album | undefined {
-    return this.albums.find((album) => album.id === id);
+  async findById(id: string): Promise<Album | undefined> {
+    return this.repository.findOne({ where: { id } });
   }
 
-  update(id: string, data: Partial<Album>): Album | undefined {
-    const album = this.findById(id);
+  async update(id: string, data: Partial<Album>): Promise<Album | undefined> {
+    const album = await this.findById(id);
     if (album) {
       Object.assign(album, data);
-      return album;
+      return this.repository.save(album);
     }
     return undefined;
   }
 
-  delete(id: string): boolean {
-    const index = this.albums.findIndex((album) => album.id === id);
-    if (index !== -1) {
-      this.albums.splice(index, 1);
-      return true;
-    }
-    return false;
+  async delete(id: string): Promise<boolean> {
+    const result = await this.repository.delete(id);
+    return result.affected > 0;
   }
 }
