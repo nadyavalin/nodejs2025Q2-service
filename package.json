@@ -26,7 +26,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "scan": "trivy image nadyavalin/library-app:latest && trivy image nadyavalin/library-db:latest",
     "typeorm": "typeorm-ts-node-commonjs",
-    "migration:generate": "typeorm-ts-node-commonjs migration:generate src/migration/InitialMigration -d src/data-source.ts",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate src/migration/$npm_config_name -d src/data-source.ts",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/data-source.ts"
   },
   "dependencies": {

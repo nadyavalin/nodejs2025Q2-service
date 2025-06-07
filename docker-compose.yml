@@ -6,24 +6,20 @@ services:
     image: nadyavalin/library-app:latest
     ports:
       - "4000:4000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_HOST=db
-      - DATABASE_PORT=5432
-      - DATABASE_USER=library_user
-      - DATABASE_PASSWORD=library_password
-      - DATABASE_NAME=home_library
+    env_file:
+      - .env
     depends_on:
       db:
         condition: service_healthy
     networks:
       - library-network
     restart: unless-stopped
+    command: npm run start:prod
 
   db:
     image: postgres:16
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=library_user
       - POSTGRES_PASSWORD=library_password
@@ -41,7 +37,6 @@ services:
 
 networks:
   library-network:
-    name: library-network
     driver: bridge
 
 volumes:

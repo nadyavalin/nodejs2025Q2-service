@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Favorites } from './favorites.entity';
 import { Artist } from '../artists/artist.entity';
 import { Album } from '../albums/album.entity';
@@ -15,6 +15,7 @@ export class FavoritesRepository {
 
   async getFavorites(): Promise<Favorites> {
     let favorites = await this.favoritesRepo.findOne({
+      where: { id: Not(IsNull()) },
       relations: ['artists', 'albums', 'tracks'],
     });
     if (!favorites) {

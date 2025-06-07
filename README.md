@@ -387,3 +387,66 @@ npm run format
 1. Open the project in VSCode.
 2. Press `F5` to start debugging.
 3. For more details, visit: [VSCode Debugging](https://code.visualstudio.com/docs/editor/debugging).
+
+## Docker Deployment
+
+### Prerequisites
+- Docker installed
+- Docker Hub account (for pushing images)
+
+### Building and Running with Docker
+
+1. Build and start containers:
+```bash
+docker-compose up -d --build
+```
+2. Check running containers:
+
+```bash
+docker-compose ps
+```
+
+3. View application logs:
+
+```bash
+docker-compose logs app
+```
+
+4. Run migrations:
+
+```bash
+docker-compose exec app npm run migration:run
+```
+
+5. Run tests:
+
+```bash
+docker-compose exec app npm run test
+```
+
+6. Stop containers:
+
+```bash
+docker-compose down
+```
+
+7. Pushing Images to Docker Hub
+Login to Docker Hub:
+
+```bash
+docker login
+```
+
+Push images:
+
+```bash
+docker push nadyavalin/library-app:latest
+docker push nadyavalin/library-db:latest
+```
+
+8. Security Scanning
+To scan Docker images for vulnerabilities:
+
+```bash
+npm run scan
+```

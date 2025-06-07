@@ -20,9 +20,9 @@ export class User {
   @Column({ default: 1 })
   version: number;
 
-  @CreateDateColumn()
-  createdAt: number;
+  @CreateDateColumn({ type: 'timestamp' })
+  createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: number;
+  @UpdateDateColumn({ type: 'timestamp' })
+  updatedAt: Date;
 }

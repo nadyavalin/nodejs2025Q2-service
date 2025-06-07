@@ -1,38 +1,24 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConfigService } from '@nestjs/config';
-import { ValidationPipe } from '@nestjs/common';
-import { SwaggerModule } from '@nestjs/swagger';
-import * as fs from 'fs';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as yaml from 'js-yaml';
+import * as fs from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT') || 4000;
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      stopAtFirstError: true,
-      disableErrorMessages: false,
-    }),
-  );
-
-  const openApiDocument = yaml.load(
-    fs.readFileSync('./doc/api.yaml', 'utf8'),
-  ) as any;
-
-  SwaggerModule.setup('doc', app, openApiDocument, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
-
-  await app.listen(port);
-  console.log(`Server is running on port ${port}`);
-  console.log(`Swagger UI is available at http://localhost:${port}/doc`);
+  const config = new DocumentBuilder()
+    .setTitle('Library API')
+    .setDescription('The Library API description')
+    .setVersion('1.0')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  const yamlDocument = yaml.dump(document);
+  fs.writeFileSync('./doc/api.yaml', yamlDocument);
+  SwaggerModule.setup('doc', app, document);
+  await app.listen(4000);
+  console.log('Server is running on port 4000');
+  console.log('Swagger UI is available at http://localhost:4000/doc');
 }
 bootstrap();
