@@ -13,7 +13,7 @@ RUN cp /app/test/auth/.e2e.spec.ts /app/test/refresh/.e2e.spec.ts /app/test/ || 
 FROM node:22.16.0-slim AS final
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production --omit=optional && npm cache clean --force
+RUN npm ci --omit=optional && npm cache clean --force
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/doc ./doc
 COPY --from=builder /app/jest.config.json ./jest.config.json
