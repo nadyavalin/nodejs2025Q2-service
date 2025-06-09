@@ -1,8 +1,26 @@
 {
-  "moduleFileExtensions": ["ts", "js"],
+  "preset": "ts-jest",
+  "moduleFileExtensions": [
+    "ts",
+    "js"
+  ],
   "rootDir": "test",
   "testEnvironment": "node",
+  "setupFiles": [
+    "dotenv/config",
+    "<rootDir>/../src/test-setup.ts"
+  ],
+  "globalTeardown": "<rootDir>/../src/test-teardown.ts",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
-  }
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/../tsconfig.json"
+      }
+    ]
+  },
+  "moduleNameMapper": {
+    "^supertest$": "<rootDir>/../node_modules/supertest/index.js"
+  },
+  "verbose": true
 }

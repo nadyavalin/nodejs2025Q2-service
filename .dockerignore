@@ -4,6 +4,7 @@ logs
 *.log
 coverage
 .env
+.env.test
 docker-compose.yml
 docker-compose.dev.yml
 Dockerfile
@@ -12,5 +13,3 @@ Dockerfile.dev
 README.md
 .git
 .gitignore
-.eslintrc.js
-.prettierrc
