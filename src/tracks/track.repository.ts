@@ -1,43 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { Track } from './interfaces';
-import { v4 as uuidv4 } from 'uuid';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Track } from './track.entity';
+import { CreateTrackDto } from './dto/create-track.dto';
 
 @Injectable()
 export class TrackRepository {
-  private tracks: Track[] = [];
+  constructor(
+    @InjectRepository(Track)
+    private readonly repository: Repository<Track>,
+  ) {}
 
-  create(track: Omit<Track, 'id'>): Track {
-    const newTrack: Track = {
-      id: uuidv4(),
-      ...track,
-    };
-    this.tracks.push(newTrack);
-    return newTrack;
+  async create(track: CreateTrackDto): Promise<Track> {
+    const newTrack = this.repository.create(track);
+    return this.repository.save(newTrack);
   }
 
-  findAll(): Track[] {
-    return this.tracks;
+  async findAll(): Promise<Track[]> {
+    return this.repository.find();
   }
 
-  findById(id: string): Track | undefined {
-    return this.tracks.find((track) => track.id === id);
+  async findById(id: string): Promise<Track | undefined> {
+    return this.repository.findOne({ where: { id } });
   }
 
-  update(id: string, data: Partial<Track>): Track | undefined {
-    const track = this.findById(id);
+  async update(id: string, data: Partial<Track>): Promise<Track | undefined> {
+    const track = await this.findById(id);
     if (track) {
       Object.assign(track, data);
-      return track;
+      return this.repository.save(track);
     }
     return undefined;
   }
 
-  delete(id: string): boolean {
-    const index = this.tracks.findIndex((track) => track.id === id);
-    if (index !== -1) {
-      this.tracks.splice(index, 1);
-      return true;
-    }
-    return false;
+  async delete(id: string): Promise<boolean> {
+    const result = await this.repository.delete(id);
+    return result.affected > 0;
   }
 }

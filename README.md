@@ -1,21 +1,33 @@
 # Home Library REST API
 
-This is a RESTful API for managing a music library, built with **NestJS**. It supports CRUD operations for **Artists**, **Albums**, **Tracks**, **Favorites**, and **Users**, with data stored in an in-memory repository. The API is documented using an OpenAPI 3.0 specification (`doc/api.yaml`), which can be imported into Postman for testing or viewed via Swagger UI.
+This is a RESTful API for managing a music library, built with **NestJS** and **TypeORM**. It supports CRUD operations for **Artists**, **Albums**, **Tracks**, **Favorites**, and **Users**, with data stored in a **PostgreSQL** database. The API is documented using an OpenAPI 3.0 specification (`doc/api.yaml`), which can be imported into Postman or viewed via Swagger UI.
 
 ## Table of Contents
 
+- [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Running the Application](#running-the-application)
-  - [Development Mode](#development-mode)
-  - [Production Mode](#production-mode)
+  - [With Docker (Recommended)](#with-docker-recommended)
+  - [Without Docker (Local Development)](#without-docker-local-development)
 - [Running Tests](#running-tests)
+- [Linting and Formatting](#linting-and-formatting)
+- [Database Migrations](#database-migrations)
+- [Vulnerability Scanning](#vulnerability-scanning)
+- [Docker Hub](#docker-hub)
 - [API Documentation](#api-documentation)
   - [Swagger UI](#swagger-ui)
   - [Importing OpenAPI Specification](#importing-openapi-specification)
 - [Testing with Postman](#testing-with-postman)
   - [Postman Testing Examples](#postman-testing-examples)
-- [Linting and Formatting](#linting-and-formatting)
 - [Debugging in VSCode](#debugging-in-vscode)
+
+## Prerequisites
+
+- **Docker** and **Docker Compose** installed ([Install Docker](https://docs.docker.com/get-docker/)).
+- **Node.js** v22.16.0 (if running without Docker).
+- **PostgreSQL** (if running without Docker, optional for local development).
+- **Git** for cloning the repository.
+- **Postman** (optional, for manual API testing).
 
 ## Installation
 
@@ -23,145 +35,264 @@ This is a RESTful API for managing a music library, built with **NestJS**. It su
 
    ```bash
    git clone https://github.com/nadyavalin/nodejs2025Q2-service
-   ```
-
-   ```bash
    cd nodejs2025Q2-service
    ```
 
-2. **Install dependencies**:
+2. **Install dependencies** (if running without Docker):
 
    ```bash
    npm install
    ```
 
-3. **Create a `.env` file**:
-   Create a `.env` file in the root directory and specify the port `4000`.
-   You can create it from `.env.example`.
+3. **Create `.env` file**:
+
+   Copy `.env.example` to `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Example `.env`:
+   ```
+   PORT=4000
+   CRYPT_SALT=10
+   JWT_SECRET_KEY=secret123
+   JWT_SECRET_REFRESH_KEY=refresh123
+   TOKEN_EXPIRE_TIME=1h
+   TOKEN_REFRESH_EXPIRE_TIME=24h
+   DATABASE_HOST=db
+   DATABASE_PORT=5432
+   DATABASE_USER=library_user
+   DATABASE_PASSWORD=library_password
+   DATABASE_NAME=home_library
+   ```
 
 ## Running the Application
 
-### Development Mode
+### With Docker (Recommended)
 
-To run the application in development mode with hot-reloading:
+The application is containerized with Docker, including a PostgreSQL database and a test service.
 
-```bash
-npm run start:dev
-```
+1. **Build and start services**:
 
-- The server will start at `http://localhost:4000`.
-- Code changes will automatically restart the server.
-- Swagger UI is available at `http://localhost:4000/doc`.
-
-### Production Mode
-
-To build and run the application in production mode:
-
-1. Build the project:
    ```bash
-   npm run build
-   ```
-2. Start the server:
-   ```bash
-   npm run start:prod
+   docker-compose up -d --build
    ```
 
-- The server will start at `http://localhost:4000`.
-- Swagger UI is available at `http://localhost:4000/doc`.
+   - Application (`app`) runs at `http://localhost:4000`.
+   - PostgreSQL (`db`) is accessible internally.
+   - Test service (`test`) is available for running tests.
+   - Swagger UI is at `http://localhost:4000/doc`.
 
-## Running Tests
+2. **Create test database**:
 
-Run end-to-end (e2e) tests using Jest.
-**Run all test suites without authorization:**
+   ```bash
+   docker exec -it nodejs2025q2-service-db-1 psql -U postgres -c "CREATE DATABASE home_library_test OWNER library_user;"
+   docker exec -it nodejs2025q2-service-db-1 psql -U library_user -d home_library_test -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+   ```
 
-```bash
-npm run test
-```
+3. **Apply migrations**:
 
-or
+   For main database (`home_library`):
 
-```bash
-npm run test -- test/*.spec.ts
-```
+   ```bash
+   docker-compose exec app npm run migration:run
+   ```
 
-Cover endpoints for `Artists`, `Albums`, `Tracks`, `Favorites`, `Users`.
+   For test database (`home_library_test`):
 
-Run a specific test suite:
+   ```bash
+   docker-compose exec test npm run migration:run
+   ```
 
-```bash
-npm run test -- test/users.e2e.spec.ts
-```
+4. **Check container status**:
 
-```bash
-npm run test -- test/artists.e2e.spec.ts
-```
+   ```bash
+   docker ps -a
+   ```
 
-```bash
-npm run test -- test/albums.e2e.spec.ts
-```
+5. **View logs**:
 
-```bash
-npm run test -- test/tracks.e2e.spec.ts
-```
+   ```bash
+   docker logs nodejs2025q2-service-app-1
+   docker logs nodejs2025q2-service-db-1
+   docker logs nodejs2025q2-service-test-1
+   ```
 
-```bash
-npm run test -- test/favorites.e2e.spec.ts
-```
+6. **Stop and remove containers**:
 
-**Run all tests with authorization:**
-(not implemented yet)
+   ```bash
+   docker-compose down --volumes
+   ```
 
-Before running tests, make sure the server is running.
+### Without Docker (Local Development)
 
-## API Documentation
+1. **Start PostgreSQL**:
 
-The API is documented in the OpenAPI 3.0 specification file located at `doc/api.yaml`. This file describes all endpoints, request/response schemas, and can be viewed interactively via Swagger UI or imported into Postman for testing.
+   Ensure a local PostgreSQL server is running with databases `home_library` and `home_library_test` created, matching `.env` and `.env.test` credentials.
 
-### Swagger UI
+2. **Apply migrations**:
 
-Swagger UI provides an interactive interface to explore and test the API endpoints defined in `doc/api.yaml`.
+   ```bash
+   npm run migration:run
+   ```
 
-**How to launch Swagger UI**:
+   For test database, set `NODE_ENV=test`:
 
-1. Start the application in development or production mode:
+   ```bash
+   NODE_ENV=test npm run migration:run
+   ```
+
+3. **Start in development mode**:
+
    ```bash
    npm run start:dev
    ```
-   or
+
+   Or in production mode:
+
    ```bash
    npm run build
    npm run start:prod
    ```
-2. Open a browser and navigate to `http://localhost:4000/doc`.
-   - You will see the Swagger UI interface displaying all API endpoints grouped by tags (e.g., `User`, `Artist`, `Album`, `Track`, `Favorites`).
 
-**How to use Swagger UI**:
+   - Server runs at `http://localhost:4000`.
+   - Swagger UI is at `http://localhost:4000/doc`.
 
-- Browse endpoints to view their descriptions, parameters, request bodies, and possible responses.
-- Use the **Try it out** button to test endpoints directly in the browser:
-  1. Click on an endpoint (e.g., `POST /artist`).
-  2. Click **Try it out**.
-  3. Enter a request body (e.g., `{ "name": "TEST_artist", "grammy": true }`).
-  4. Click **Execute** to send the request and view the response.
-- The interface supports testing CRUD operations for all entities (`Artists`, `Albums`, `Tracks`, `Favorites`, `Users`).
-- For more information about Swagger, visit [https://swagger.io](https://swagger.io).
+## Running Tests
+
+The application includes 40/67 end-to-end (E2E) tests using Jest and Supertest.
+
+1. **Run tests with Docker**:
+
+   ```bash
+   docker-compose exec test npm run test
+   ```
+
+2. **Run tests locally** (requires server running):
+
+   ```bash
+   npm run test
+   ```
+
+3. **Run specific test suites**:
+
+   ```bash
+   npm run test -- test/users.e2e.spec.ts
+   npm run test -- test/artists.e2e.spec.ts
+   npm run test -- test/albums.e2e.spec.ts
+   npm run test -- test/tracks.e2e.spec.ts
+   npm run test -- test/favorites.e2e.spec.ts
+   ```
+
+**Note**: Ensure the test database (`home_library_test`) is created and migrations are applied before running tests.
+
+## Linting and Formatting
+
+1. **Run linting** (ESLint):
+
+   With Docker:
+
+   ```bash
+   docker-compose exec app npm run lint
+   ```
+
+   Locally:
+
+   ```bash
+   npm run lint
+   ```
+
+2. **Format code** (Prettier):
+
+   ```bash
+   npm run format
+   ```
+
+## Database Migrations
+
+Database schema is managed with TypeORM migrations.
+
+1. **Apply migrations**:
+
+   For main database:
+
+   ```bash
+   docker-compose exec app npm run migration:run
+   ```
+
+   For test database:
+
+   ```bash
+   docker-compose exec test npm run migration:run
+   ```
+
+2. **Verify tables**:
+
+   ```bash
+   docker exec -it nodejs2025q2-service-db-1 psql -U library_user -d home_library -c "\dt"
+   docker exec -it nodejs2025q2-service-db-1 psql -U library_user -d home_library_test -c "\dt"
+   ```
+
+## Vulnerability Scanning
+
+Scan Docker images.
+**Run scan**:
+
+   ```bash
+   npm run scan
+   ```
+
+   Or directly:
+
+   ```bash
+   trivy image nadyavalin/library-app:latest
+   trivy image postgres:16
+   ```
+
+## Docker Hub
+
+The application image is available on Docker Hub:
+
+- **Pull image**:
+
+   ```bash
+   docker pull nadyavalin/library-app:latest
+   ```
+
+- **Run image**:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+## API Documentation
+
+The API is documented in `doc/api.yaml` (OpenAPI 3.0).
+
+### Swagger UI
+
+1. Start the application:
+
+   ```bash
+   docker-compose up -d app
+   ```
+
+2. Open `http://localhost:4000/doc` in a browser.
+
+3. Use **Try it out** to test endpoints interactively.
 
 ### Importing OpenAPI Specification
 
-To test the API in Postman:
-
 1. Open Postman.
 2. Click **Import** > **File** > select `doc/api.yaml`.
-3. Postman will generate a collection with all endpoints.
-4. Set the base URL to `http://localhost:4000` in the collection variables (if necessary).
+3. Set base URL to `http://localhost:4000`.
 
 ## Testing with Postman
 
-Below are examples of testing each endpoint using Postman. Ensure the server is running (`npm run start:dev`). All requests use `Accept: application/json` headers. POST and PUT requests use `Content-Type: application/json` headers.
+Ensure the server is running (`docker-compose up -d app`). All requests use `Accept: application/json`. POST and PUT requests use `Content-Type: application/json`.
 
 ### Authentication
-
-First, create a user.
 
 - **Create User**:
 
@@ -176,7 +307,6 @@ First, create a user.
   ```
 
   Response (201 Created):
-
   ```json
   {
     "id": "<uuid>",
@@ -188,40 +318,6 @@ First, create a user.
   ```
 
 ### Artists Endpoints
-
-- **Get All Artists**:
-
-  ```
-  GET http://localhost:4000/artist
-  ```
-
-  Response (200 OK):
-
-  ```json
-  [
-    {
-      "id": "<uuid>",
-      "name": "TEST_artist",
-      "grammy": true
-    }
-  ]
-  ```
-
-- **Get Artist by ID**:
-
-  ```
-  GET http://localhost:4000/artist/<artist-id>
-  ```
-
-  Response (200 OK):
-
-  ```json
-  {
-    "id": "<uuid>",
-    "name": "TEST_artist",
-    "grammy": true
-  }
-  ```
 
 - **Create Artist**:
 
@@ -236,7 +332,6 @@ First, create a user.
   ```
 
   Response (201 Created):
-
   ```json
   {
     "id": "<uuid>",
@@ -245,33 +340,24 @@ First, create a user.
   }
   ```
 
-- **Update Artist**:
+- **Get All Artists**:
 
   ```
-  PUT http://localhost:4000/artist/<artist-id>
-  Content-Type: application/json
-  Body:
-  {
-    "name": "Updated_artist",
-    "grammy": false
-  }
+  GET http://localhost:4000/artist
   ```
 
   Response (200 OK):
-
   ```json
-  {
-    "id": "<uuid>",
-    "name": "Updated_artist",
-    "grammy": false
-  }
+  [
+    {
+      "id": "<uuid>",
+      "name": "TEST_artist",
+      "grammy": true
+    }
+  ]
   ```
 
-- **Delete Artist**:
-  ```
-  DELETE http://localhost:4000/artist/<artist-id>
-  ```
-  Response (204 No Content).
+- **Get Artist by ID**, **Update Artist**, **Delete Artist**: Use `/artist/<artist-id>`.
 
 ### Albums Endpoints
 
@@ -289,7 +375,6 @@ First, create a user.
   ```
 
   Response (201 Created):
-
   ```json
   {
     "id": "<uuid>",
@@ -299,7 +384,7 @@ First, create a user.
   }
   ```
 
-- **Get All Albums**, **Get Album by ID**, **Update Album**, **Delete Album**: Use `/album` and `/album/<album-id>` (similar to Artists).
+- **Get All Albums**, **Get Album by ID**, **Update Album**, **Delete Album**: Use `/album` and `/album/<album-id>`.
 
 ### Tracks Endpoints
 
@@ -318,7 +403,6 @@ First, create a user.
   ```
 
   Response (201 Created):
-
   ```json
   {
     "id": "<uuid>",
@@ -329,7 +413,7 @@ First, create a user.
   }
   ```
 
-- **Get All Tracks**, **Get Track by ID**, **Update Track**, **Delete Track**: Use `/track` and `/track/<track-id>` (similar to Artists).
+- **Get All Tracks**, **Get Track by ID**, **Update Track**, **Delete Track**: Use `/track` and `/track/<track-id>`.
 
 ### Favorites Endpoints
 
@@ -349,7 +433,6 @@ First, create a user.
   ```
 
   Response (200 OK):
-
   ```json
   {
     "artists": [{ "id": "<uuid>", "name": "TEST_artist", "grammy": true }],
@@ -366,24 +449,10 @@ First, create a user.
 
   Response (204 No Content).
 
-- **Add/Remove Albums/Tracks to Favorites**: Use `/favs/album/<album-id>`, `/favs/track/<track-id>` (similar to Artists).
-
-## Linting and Formatting
-
-To fix linting issues:
-
-```bash
-npm run lint
-```
-
-To format code with Prettier:
-
-```bash
-npm run format
-```
+- **Add/Remove Albums/Tracks**: Use `/favs/album/<album-id>`, `/favs/track/<track-id>`.
 
 ## Debugging in VSCode
 
 1. Open the project in VSCode.
 2. Press `F5` to start debugging.
-3. For more details, visit: [VSCode Debugging](https://code.visualstudio.com/docs/editor/debugging).
+3. See [VSCode Debugging](https://code.visualstudio.com/docs/editor/debugging).

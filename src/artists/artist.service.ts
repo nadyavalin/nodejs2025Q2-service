@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Artist } from './interfaces';
+import { Artist } from './artist.entity';
 import { ArtistRepository } from './artist.repository';
 import { validate as isUUID } from 'uuid';
 import { plainToInstance } from 'class-transformer';
@@ -35,12 +35,12 @@ export class ArtistService {
     if (!dto.name || typeof dto.grammy !== 'boolean') {
       throw new BadRequestException('Name and grammy are required');
     }
-    const artist = this.repository.create(dto);
+    const artist = await this.repository.create(dto);
     return plainToInstance(Artist, artist);
   }
 
   async findAll(): Promise<Artist[]> {
-    const artists = this.repository.findAll();
+    const artists = await this.repository.findAll();
     return artists.map((artist) => plainToInstance(Artist, artist));
   }
 
@@ -48,7 +48,7 @@ export class ArtistService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const artist = this.repository.findById(id);
+    const artist = await this.repository.findById(id);
     if (!artist) {
       throw new NotFoundException('Artist not found');
     }
@@ -59,11 +59,10 @@ export class ArtistService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const artist = this.repository.findById(id);
+    const artist = await this.repository.findById(id);
     if (!artist) {
       throw new NotFoundException('Artist not found');
     }
-
     if (typeof dto.name !== 'string' || typeof dto.grammy !== 'boolean') {
       throw new BadRequestException(
         'Name must be a string and grammy must be a boolean',
@@ -72,7 +71,7 @@ export class ArtistService {
     if (!dto.name) {
       throw new BadRequestException('Name is required');
     }
-    const updatedArtist = this.repository.update(id, dto);
+    const updatedArtist = await this.repository.update(id, dto);
     if (!updatedArtist) {
       throw new NotFoundException('Artist not found');
     }
@@ -83,22 +82,22 @@ export class ArtistService {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID');
     }
-    const deleted = this.repository.delete(id);
+    const deleted = await this.repository.delete(id);
     if (!deleted) {
       throw new NotFoundException('Artist not found');
     }
 
     await this.favoritesService.removeArtist(id);
-    const albums = this.albumRepository.findAll();
-    albums.forEach((album) => {
+    const albums = await this.albumRepository.findAll();
+    albums.forEach(async (album) => {
       if (album.artistId === id) {
-        this.albumRepository.update(album.id, { artistId: null });
+        await this.albumRepository.update(album.id, { artistId: null });
       }
     });
-    const tracks = this.trackRepository.findAll();
-    tracks.forEach((track) => {
+    const tracks = await this.trackRepository.findAll();
+    tracks.forEach(async (track) => {
       if (track.artistId === id) {
-        this.trackRepository.update(track.id, { artistId: null });
+        await this.trackRepository.update(track.id, { artistId: null });
       }
     });
   }
